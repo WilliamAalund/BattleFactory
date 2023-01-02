@@ -4,6 +4,7 @@ import random as rng
 import numpy as np
 import math
 import character_Object as co
+
 #--------------- FUNCTIONS --------------
 class diff(): #FIXME: This isnt necessary at all
     def __init__(self):
@@ -284,8 +285,8 @@ def party_select(team, backout=False, in_battle=True):
                         break
     return int(uinp)
 
-def printparty(team):
-    'Takes as an argument a list of pokemon objects. All objects in the list must be pokemon.'
+def printparty(team,witheldpoke=0):
+    'Takes as an argument a list of pokemon objects. Witheldpoke determines how many pokemon will not be shown on the list must not be greater than the input team. All objects in the list must be pokemon.'
     print('')
     i = 0
     for poke in team:
@@ -460,17 +461,30 @@ while W_Count <= W_Thresh:
                 if co.basestat(poke, stat='evolution') == 'n' or co.basestat(poke, stat='evolution').isdigit():
                     print(f'\033[1;34m^ {co.basestat(poke)} gained 1 exp point.\033[1;37m')
                     poke.exp_Gain(1)
-                if W_Count == 4 or W_Count == 8 or W_Count == 12 or W_Count == 16 and poke.real_HP != poke.HP: #W Count = boss battle
+                if poke.real_HP != poke.HP: #W Count = boss battle
                     poke.real_HP += int(poke.HP)
                     print(f'\033[1;32m+ {co.basestat(poke)} fully healed.\033[1;37m')
-                elif poke.real_HP != poke.HP:
-                    poke.real_HP += int(poke.HP * (3 / 4))
-                    print(f'\033[1;32m+ {co.basestat(poke)} healed for 75% of max HP.\033[1;37m')
                 if poke.real_HP > poke.HP:
                     poke.real_HP = poke.HP
             for poke in enteam:
                 poke.real_HP = poke.HP
-            print("You can choose to trade one of your Pokemon for one of your opponent's. If you select to trade one of your own Pokemon, you must exchange it. If you do not want to exchange Pokemon, input x.")
+            print(f"You can choose to trade one of your Pokemon for one of your opponent's. If you select to trade one of your own Pokemon, you must exchange it. If you do not want to exchange Pokemon, input x.")
+            #printparty(enteam)
+            if W_Count == 3: #W Count = round before boss battle
+                enteam = bossteam1
+            elif W_Count == 7:
+                potteam = bossteam2
+            elif W_Count == 11:
+                potteam = bossteam3
+            elif W_Count == 15:
+                potteam = bossteam4
+            else:
+                enemy_Random_BST_Limit = base_enemy_BST + W_Count * BST_Enemy_Increment
+                enemy_Random_BST_Floor = 170 + W_Count * BST_Enemy_Increment
+                potteam = [co.new_Pokemon(co.random_From_Roster(BST_Floor= enemy_Random_BST_Floor, BST_Limit= enemy_Random_BST_Limit),level=50 + difficulty.diffval),co.new_Pokemon(co.random_From_Roster(BST_Floor= enemy_Random_BST_Floor, BST_Limit= enemy_Random_BST_Limit),level=50 + difficulty.diffval),co.new_Pokemon(co.random_From_Roster(BST_Floor= enemy_Random_BST_Floor, BST_Limit= enemy_Random_BST_Limit),level=50 + difficulty.diffval),]
+            print("\nNext opponent's team:",end='')
+            printparty(potteam)
+            print('\nYour current team:',end='')
             pokeselect = party_select(plteam, backout=True, in_battle=False)
             if not pokeselect == 'Exit':
                 print('Choose a new Pokemon to trade and take with you.')
@@ -479,22 +493,17 @@ while W_Count <= W_Thresh:
                     poke.calc_Stat()
                 partyselect = party_select(enteam, in_battle=False)
                 plteam[pokeselect] = enteam.pop(partyselect)
+            enteam = potteam
             if W_Count == 3: #W Count = round before boss battle
-                enteam = bossteam1
                 print(f'\n\033[1;31mBoss 1 incoming!\n\nBoss trainer {b1name} challenges you to a battle!\033[1;31m')
             elif W_Count == 7:
-                enteam = bossteam2
                 print(f'\n\033[1;31mBoss 2 incoming!\n\nBoss trainer {b2name} challenges you to a battle!\033[1;31m')
             elif W_Count == 11:
-                enteam = bossteam3
                 print(f'\n\033[1;31mBoss 3 incoming!\n\nBoss trainer {b3name} challenges you to a battle!\033[1;31m')
             elif W_Count == 15:
-                enteam = bossteam4
                 print(f'\n\033[1;31mFinal Boss incoming!\n\nWeilder {b4name} dares your approach!\033[1;31m')
             else:
-                enemy_Random_BST_Limit = base_enemy_BST + W_Count * BST_Enemy_Increment
-                enemy_Random_BST_Floor = 170 + W_Count * BST_Enemy_Increment
-                enteam = [co.new_Pokemon(co.random_From_Roster(BST_Floor= enemy_Random_BST_Floor, BST_Limit= enemy_Random_BST_Limit),level=50 + difficulty.diffval),co.new_Pokemon(co.random_From_Roster(BST_Floor= enemy_Random_BST_Floor, BST_Limit= enemy_Random_BST_Limit),level=50 + difficulty.diffval),co.new_Pokemon(co.random_From_Roster(BST_Floor= enemy_Random_BST_Floor, BST_Limit= enemy_Random_BST_Limit),level=50 + difficulty.diffval),]
+                print('Next opponent incoming!')
             gameresult = 'U'
             plcurr = 0
             encurr = 0
