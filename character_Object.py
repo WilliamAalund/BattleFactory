@@ -3,7 +3,6 @@ import csv
 import random as rng
 #Credit to amgilles: https://gist.github.com/armgilles/194bcff35001e7eb53a2a8b441e8b2c6#file-pokemon-csv
 #Credit to simsketch: https://gist.github.com/simsketch/1a029a8d7fca1e4c142cbfd043a68f19
-#Credit to tenlaven: 
 naturedict = {'Hardy': ('attack','attack'),'Lonely': ('attack','defense'),'Adamant': ('attack','sp_Attack'),'Naughty': ('attack','sp_Defense'),'Brave': ('attack','speed'),
               'Bold': ('defense','attack'),'Docile': ('defense','defense'),'Impish': ('defense','sp_Attack'),'Lax': ('attack','sp_Defense'),'Relaxed': ('defense','speed'),
               'Modest': ('sp_Attack','attack'),'Mild': ('sp_Attack','defense'),'Bashful': ('sp_Attack','sp_Attack'),'Rash': ('sp_Attack','sp_Defense'),'Quiet': ('sp_Attack','speed'),

@@ -6,10 +6,6 @@ import math
 import character_Object as co
 
 #--------------- FUNCTIONS --------------
-class diff(): #FIXME: This isnt necessary at all
-    def __init__(self):
-        self.diffval = ''
-
 def gamenotfinished():
     #This function would not know how to handle a move like self destruct defeating both pokemon and ending the game.
     'Returns a boolean value. Determines of either the player or the enemy is defeated. Updates the gameresult variable if the game ends. Requires zero parameters.'
@@ -33,30 +29,35 @@ def gamenotfinished():
         return False
     else:
         return True
-   
+ 
 def damage_calc(attacker, defender='unknown', atkform='p', atktype=1, random=0):
-    #This is where the damage calculation function will go. 
+    'This function returns a damage calculation. Currently only used in AI calculations. atktype determines if the first or second type of the attacking pokemon is used for damage calculation. Random determines if random crits will be used in the calculation'
+    #FIXME: This function should become more robust, and used in the attack function. 
+    #Damage = ((((2*level / 5 + 2) * power * (A / D)) / 50) + 2) * targets * weather * critical * rng * stab * burn * other
     if atkform == 'p':
         used_Attack = attacker.attack
     elif atkform == 's':
         used_Attack = attacker.sp_Attack
     if random == 0:
         crit_mult = 1
+    elif random == 1:
+        crit_mult = 1.5 - .5 * bool(rng.randint(0,16))
+    if atktype == 1:
+        used_Type = attacker.type
+    elif atktype == 2:
+        used_Type = attacker.type_2
     if defender == 'unknown':
         used_Defense = 100
         return math.ceil(((((2*attacker.level / 5 + 2) * crit_mult * base_power * (used_Attack / used_Defense)) / 50) + 2))
     elif defender != 'unknown':
-        #print(co.basestat(defender))
         if atkform == 'p':
             used_Defense = defender.defense
         elif atkform == 's':
             used_Defense = defender.sp_Defense
-        if atktype == 1:
-            return math.ceil(((((2*attacker.level / 5 + 2) * crit_mult * base_power * (used_Attack / used_Defense)) / 50) + 2)) * typechart[typedict[attacker.type]][typedict[defender.type]] * typechart[typedict[attacker.type]][typedict[defender.type_2]]
-        if atktype == 2:
-            return math.ceil(((((2*attacker.level / 5 + 2) * crit_mult * base_power * (used_Attack / used_Defense)) / 50) + 2)) * typechart[typedict[attacker.type_2]][typedict[defender.type]] * typechart[typedict[attacker.type_2]][typedict[defender.type_2]]
-    #typechart[typedict[attacker.type]][typedict[defender.type]] * typechart[typedict[attacker.type]][typedict[defender.type_2]]
-F_Count = 0
+    return math.ceil(((((2*attacker.level / 5 + 2) * crit_mult * base_power * (used_Attack / used_Defense)) / 50) + 2)) * typechart[typedict[used_Type]][typedict[defender.type]] * typechart[typedict[used_Type]][typedict[defender.type_2]]
+
+F_Count = 0 #This variable is declared here because it is utilized in the attack function
+
 def attack(foe, atkform='p', atktype=1):
     'foe will either equal p or e. The input value will determine who is attacked. atkform is either p or s, and will determine if the attack uses attack/defense or special attack/defense stats. atktype determines the type that the pokemon will attack with.'
     global turnqueue #Accesses the turnqueue. This is necessary because if a pokemon faints, the turn queue is appended in order to allow another pokemon to be switched in.
@@ -142,17 +143,11 @@ def help_Menu():
             #\n - Pokemon can attack in two different ways: physically and specially. Physical Attacks involve physically attacking the opponent, while Special Attacks involve using energy, magic, or other non direct means of offense.
         elif uinp == '4':
             print('\n\033[1;33m----------OUT OF BATTLE----------\033[1;37m')
-            print('At the beginning of the game, you will be given a selection of six Pokemon to choose from. You may take three of them to use in battle. Choose wisely!\n\nAfter you win a battle, your Pokemon will be healed and gain exp if they can evolve.\nPokemon are healed 75% after a regular battle, and are fully healed after a boss battle. If a Pokemon is already at max HP, they will not be healed.\nExp is discussed in the Pokemon section.\n\nAfter each battle, you will be given the opportunity to trade a Pokemon for one of the opponents Pokemon. The Pokemon you select for trade will leave your party, and a Pokemon selected from the opponents team will replace it. This Pokemon will be an identical copy from the opponents team.')
+            print('At the beginning of the game, you will be given a selection of six Pokemon to choose from. You may take three of them to use in battle. Choose wisely!\n\nAfter you win a battle, your Pokemon will be healed and gain exp if they can evolve.\nPokemon are healed fully after each successful battle. If a Pokemon is already at max HP, they will not be healed.\nExp is discussed in the Pokemon section.\n\nAfter each battle, you will be given the opportunity to trade a Pokemon for one of the opponents Pokemon. The Pokemon you select for trade will leave your party, and a Pokemon selected from the opponents team will replace it. This Pokemon will be an identical copy from the opponents team.')
             uinp = ''
         if uinp == 'x':
             continue
-    
-    #Old help guide
-    #print("\n-----GAME GUIDE-----\nThere are three main actions that you as the player can take.\n\nFight: Your pokemon attacks the opponent. An attack's strength is determined by:\n1. The move's form.\n - Pokemon can attack in two different ways: physically and specially. Physical attacks involve physically attacking the opponent, while special attacks involve using energy, magic, or other non direct means of offense.\n2. The attacking Pokemon's offensive stats.\n - Pokemon have two different offensive stats: attack and special attack. A higher offensive stat will increase the power of an attack of the corresponding form.\n3. The defending Pokmeon's defensive stats.\n - Pokemon also have Defense and Special Defense stats. The higher these stats are, the better a pokemon can take an attack of the respective form.\n4. The type matchup between the attacking and defending Pokemon.\n - Every pokemon has a type. When a pokemon attacks, it attacks with its type. Depending on the opponent's type, this may influence damage calculation. Some types are weak to others (A pokemon weak to an attack will take double damage,) some are resistant (A resistant Pokemon will take half damage,) some are neutral (no change,) and some are immune (No damage from an attack.) The game will notify the player when an attack is Super Effective, Not Very Effective, or Nullfied.\nHigher offensive stats, lower defensive stats, a super effective type matchup, and the correct move form will all increase the damage of an attack. A faster pokemon will attack before a slower pokemon. If a pokemons HP reaches 0, it faints, and cannot continue to battle. If a pokemon faints before using a move, it will not attack.\n")
-    #print("Party: The party screen is where you can access a summary of each of your party pokemon's stats, and where you can switch out your pokemon. When you switch a pokemon, your pokemon is sent back to their pokeball, and another is sent out. The retreating pokemon retains damage that it already has. Switching a pokemon counts as an action for that turn, so the pokemon switching in will not be able to attack. If your pokemon faints on the field, you will be automatically prompted to send out another one, if you still have pokemon able to fight. Next, you can also use the switch menu to check the stats of your pokemon by selecting a pokemon and using the summary key. This screen will provide various stats about your Pokemon, including it's name, type, HP, offenses, defenses, speed, and more.\n")
-    #print('Run: Run from the battle. The game ends with a loss.\n')
-    #print('The game ends when either side defeats all of the other opposing pokemon. Your opponents pokemon are stronger than yours. In order to win, you will need to utilize effective type matchups to deal as much damage as possible. Experiment and learn what Pokemon need to be used when.')
-
+        
 def runturn():
     'Performs a turn between the enemy and the player.'
     #enemies should switch to the next pokemon based off of a decision making process.
@@ -163,11 +158,14 @@ def runturn():
     global plcurr #global variable for the player's party pokemon
     global encurr #global variable for the enemy's party pokemon
     if enteam[encurr].type_2 == 'None': #One type AI
+        #if damage_calc(enteam[encurr], defender=plteam[plcurr], atkform='p') == 0 and damage_calc(enteam[encurr], defender=plteam[plcurr], atkform='s') == 0:
+        #    print("\nThe enemy Pokemon failed to attack!")
+        #    #Switch command
         if damage_calc(enteam[encurr], defender=plteam[plcurr], atkform='p') >= damage_calc(enteam[encurr], defender=plteam[plcurr], atkform='s'):
             turnqueue[1].append(('emp',0,enteam[encurr],0))
         elif damage_calc(enteam[encurr], defender=plteam[plcurr], atkform='p') < damage_calc(enteam[encurr], defender=plteam[plcurr], atkform='s'):   
             turnqueue[1].append(('ems',0,enteam[encurr],0))
-    elif enteam[encurr].type_2 != 'None':
+    elif enteam[encurr].type_2 != 'None': #Dual type AI
         move1 = damage_calc(enteam[encurr], defender=plteam[plcurr], atkform='p')
         move2 = damage_calc(enteam[encurr], defender=plteam[plcurr], atkform='p', atktype=2)
         move3 = damage_calc(enteam[encurr], defender=plteam[plcurr], atkform='s', atktype=1)
@@ -191,10 +189,7 @@ def runturn():
             priority.sort(key= lambda command: command[2].speed, reverse=True) #Sort attacks based on speed
     for priority in turnqueue:
         for command in priority:
-            if command[0] == 'pm': #Archaic command
-                if not plteam[plcurr].real_HP <= 0:
-                    attack('e')
-            elif command[0] == 'pmp': #Player move physical
+            if command[0] == 'pmp': #Player move physical
                 if not plteam[plcurr].real_HP <= 0:
                     attack('e', atkform='p')
             elif command[0] == 'pmp2': #Player move physical using second type
@@ -206,9 +201,6 @@ def runturn():
             elif command[0] == 'pms2': #Player move special using second type
                 if not plteam[plcurr].real_HP <= 0:
                     attack('e', atkform='s',atktype=2)
-            elif command[0] == 'em': #Enemy move
-                if not enteam[encurr].real_HP <= 0:
-                    attack('p')
             elif command[0] == 'emp': #Enemy physical move
                 if not enteam[encurr].real_HP <= 0:
                     attack('p',atkform='p')
@@ -231,12 +223,8 @@ def runturn():
                     print(f'\n{co.basestat(plteam[plcurr])} was sent out!')
             if command == 'efs': #Command that signals the enemy needs to switch their pokemon into the match
                 if gamenotfinished():
-                    #While the current pokemon enteam[encurr][2] <= 0:
-                    #encurr = rng.randint(0,len(enteam))
-                    while enteam[encurr].real_HP <= 0:
+                    while enteam[encurr].real_HP <= 0: #While Pokemon's HP < 0
                         encurr = rng.randint(0,len(enteam) - 1)
-                    #Add 1 to the encurr
-                    #encurr += 1
                     print(f'\nThe enemy sends out {co.basestat(enteam[encurr])}!')
                     append_encounter_list(enteam[encurr], element='pokemon')
     turnqueue = [[],[],[]]
@@ -258,10 +246,10 @@ def party_select(team, backout=False, in_battle=True):
         if uinp == 'x' and backout == False:
             print('You must select a Pokemon.')
         if uinp.isdigit():
-            if not (int(uinp) > -1 and int(uinp) <= len(team) - 1):
+            if not (int(uinp) > -1 and int(uinp) <= len(team) - 1): #If the input value is not a value that corresponds to a pokemon 
                 print('\033[1;31mEnter a valid value.')
                 uinp = ''  
-            elif team[int(uinp)].real_HP <= 0:
+            elif team[int(uinp)].real_HP <= 0: #FIXME: This could be a problem in some selection screens
                 print(f'\033[1;31m{co.basestat(team[int(uinp)])} has no energy left to fight!')
                 uinp = ''
             else:
@@ -302,7 +290,7 @@ def printparty(team,witheldpoke=0):
             print()
         i += 1
         
-def game_loop(team):
+def game_Loop(team):
     while gamenotfinished(): #Core gameloop
         print('\033[1;30m----------------------------------------------\033[1;37m',end='')
         if plteam[plcurr].real_HP / plteam[plcurr].HP < 0.25:
@@ -372,42 +360,32 @@ def append_encounter_list(item, element='team'):
 #--------------- INITIALIZED VARIABLES -------------
 print('\033[1;37mWelcome to the Battle Factory!\nLoading. Please wait.',end='')
 W_Count = 0
-difficulty = diff() 
-difficulty.diffval = 0
 #difficulty = input('Welcome to Pokemon! Enter an integer to set the difficulty.\n(0 is easy, 40 is normal, 60 is hard, and 100+ is expert): ')
-#This game is too difficult for a dedicated difficulty setting. I don't want to make players feel like they have to go higher.
-'''while not difficulty.diffval.isdigit(): #FIXME
-    difficulty.diffval = input('\033[1;37mWelcome to the Battle Factory! Enter an integer between 0 and 50 to set the difficulty. (0 is standard gameplay, integers above 0 are harder.): ') #FIXME
-    if difficulty.diffval.isdigit():
-        if int(difficulty.diffval) > 50 or int(difficulty.diffval) < 0:
-            print('\n\033[1;31mPlease enter a number from 0-50.\n')
-            difficulty.diffval = '' '''
-difficulty.diffval = int(difficulty.diffval) #FIXME
 len_roster = 1078 #This value should equal the length of the csv file for the pokemon
 starter_Max_BST = 335 #Maximum BST that starters can have
 base_enemy_BST = 350 #Base value for enemy base stat total
-BST_Enemy_Increment = 22
+BST_Enemy_Increment = 22 #After each victory in battle, the potential BST of a new Pokemon is incremented by this value
 enemy_Random_BST_Limit = base_enemy_BST + W_Count * BST_Enemy_Increment
-base_power = 80
-encountered_list = []
-#Damage = ((((2*level / 5 + 2) * power * (A / D)) / 50) + 2) * targets * weather * critical * rng * stab * burn * other
-#ideal = ['name', 'level', 'HP', 'HPMax', 'Atk', 'Def', 'SpAtk','SpDef', 'Speed', 'Type1']
-plteam = []
-plcurr = 0
-encurr = 0
-enteam = [co.new_Pokemon(co.random_From_Roster(BST_Limit=300),level=50 + difficulty.diffval),]
-bossteam1 = [co.new_Pokemon(116,level=50 + difficulty.diffval),co.new_Pokemon(235,level=50 + difficulty.diffval),co.new_Pokemon(200,level=50 + difficulty.diffval)] #Grimer, Yanma, Crocanaw
+base_power = 80 #This is the base power of moves
+encountered_list = [] #Records every pokemon that is encountered in a run.
+plteam = [] #Initializes the players team
+plcurr = 0 #Which pokemon in the player's team is being accessed
+encurr = 0 #Which Pokemon in the enemy's team is being accessed
+enteam = [co.new_Pokemon(co.random_From_Roster(BST_Limit=300),level=50),] #Initializes the enemy team. The reason that it is initialized with one Pokemon is because the first battle that the player faces is supposed to be an easy one. 
+#enteam = [co.new_Pokemon(116,level=50),] #Debug
+#FIXME: These teams could probably become an object, with streamlined ways of generating them
+bossteam1 = [co.new_Pokemon(116,level=50),co.new_Pokemon(235,level=50),co.new_Pokemon(200,level=50)] #Round 4: Grimer, Yanma, Crocanaw
 b1name = 'Dylan'
-bossteam2 = [co.new_Pokemon(27,level=50 + difficulty.diffval),co.new_Pokemon(551,level=50 + difficulty.diffval),co.new_Pokemon(741,level=50 + difficulty.diffval)] #Mandibuzz, Raticate, Magnezone
+bossteam2 = [co.new_Pokemon(27,level=50),co.new_Pokemon(551,level=50),co.new_Pokemon(741,level=50)] #Round 8: Mandibuzz, Raticate, Magnezone
 b2name = 'June'
-bossteam3 = [co.new_Pokemon(290,level=50 + difficulty.diffval),co.new_Pokemon(291,level=50 + difficulty.diffval),co.new_Pokemon(292,level=50 + difficulty.diffval)] #Entei, Suicune, Raikou
+bossteam3 = [co.new_Pokemon(290,level=50),co.new_Pokemon(291,level=50),co.new_Pokemon(292,level=50)] #Round 12: Entei, Suicune, Raikou
 b3name = 'Nemona'
-bossteam4 = [co.new_Pokemon(1065,level=50 + difficulty.diffval),co.new_Pokemon(1077,level=50 + difficulty.diffval),co.new_Pokemon(1072,level=50 + difficulty.diffval)] #Hisuian Samurott, Hisuian Braviary, Origin Dialga
+bossteam4 = [co.new_Pokemon(1065,level=50),co.new_Pokemon(1077,level=50),co.new_Pokemon(1072,level=50)] #Round 16: Hisuian Samurott, Hisuian Braviary, Origin Dialga
 b4name = 'Grug'
 print('.',end='')
-turnqueue = [[],[],[]]
+turnqueue = [[],[],[]] #This list is what is evaluated to determine turn order, etc. First nested list holds priority moves, second list holds non priority and the third is negative priority. 
 typedict = {'Normal':0,'Fire':1,'Water':2,'Grass':3,'Electric':4,'Ice':5,'Fighting':6,'Poison':7,'Ground':8,'Flying':9,'Psychic':10,'Bug':11,'Rock':12,'Ghost':13,'Dragon':14,'Dark':15,'Steel':16,'Fairy':17,'None':18}
-#Dict points to index of a particular row or column on the type chart.
+#Dict points to index of a particular row or column on the type chart. Rows are attacking type, each column is the defending type
 typechart = np.array([[1,1,1,1,1,1,1,1,1,1,1,1,.5,0,1,1,.5,1,1], #Normal
                       [1,.5,.5,2,1,2,1,1,1,1,1,2,.5,1,.5,1,2,1,1], #Fire
                       [1,2,.5,.5,1,1,1,1,2,1,1,1,2,1,.5,1,1,1,1], #Water
@@ -428,14 +406,11 @@ typechart = np.array([[1,1,1,1,1,1,1,1,1,1,1,1,.5,0,1,1,.5,1,1], #Normal
                       [1,.5,1,1,1,1,2,.5,1,1,1,1,1,1,2,2,.5,1,1], #Fairy
                       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]) #None
                       #N,Fi,W,G,E,I,Ft,Po,G,Fl,Ps,B,R,G,Dr,D,S,F,None
-#Rows are attacking type, each column is the defending type
-gameresult = 'U'
-W_Thresh = 15 #For testing purposes
+gameresult = 'U' #U = Undecided, W = Win, L = Loss
+W_Thresh = 15 #For testing purposes. The game ends if the player wins more battles than this value.
 #--------------- GAME LOOP ---------------
 rentteam = [co.new_Pokemon(co.random_From_Roster(BST_Floor=300,BST_Limit= starter_Max_BST),level=50),co.new_Pokemon(co.random_From_Roster(BST_Floor=300,BST_Limit= starter_Max_BST),level=50),co.new_Pokemon(co.random_From_Roster(BST_Floor=300,BST_Limit= starter_Max_BST),level=50),co.new_Pokemon(co.random_From_Roster(BST_Floor=300,BST_Limit= starter_Max_BST),level=50),co.new_Pokemon(co.random_From_Roster(BST_Floor=300,BST_Limit= starter_Max_BST),level=50),co.new_Pokemon(co.random_From_Roster(BST_Floor=300,BST_Limit=starter_Max_BST),level=50),]
 print('. done')
-#pokeselect = party_select(rentteam, backout=True, in_battle=False)
-#print(pokeselect)
 print('\nBefore you can battle, you will need to select three Pokemon to take with you. Choose three pokemon from this list, and then continue.')
 while len(plteam) < 3:
     pokeselect = party_select(rentteam, in_battle=False)
@@ -445,13 +420,12 @@ while len(plteam) < 3:
         print(f'Select {3-len(plteam)} more Pokemon.')
 append_encounter_list(plteam)
 append_encounter_list(enteam)
-#append_encounter_list(enteam[encurr])
 
-#Player must win 10 games to escape the loop
+#Player must win more than W_Thresh games to escape the loop
 while W_Count <= W_Thresh:
     if gameresult == 'U':
         print(f'\n\033[1;33mBattle No. {W_Count + 1} out of 16\033[1;37m')
-        game_loop(enteam)
+        game_Loop(enteam)
     #Prints out the final result of the program.
     if gameresult == 'W':
         print('\033[1;33m\nThe enemy was defeated!\033[1;37m\n')
@@ -468,9 +442,8 @@ while W_Count <= W_Thresh:
                     poke.real_HP = poke.HP
             for poke in enteam:
                 poke.real_HP = poke.HP
-            print(f"You can choose to trade one of your Pokemon for one of your opponent's. If you select to trade one of your own Pokemon, you must exchange it. If you do not want to exchange Pokemon, input x.")
-            #printparty(enteam)
-            if W_Count == 3: #W Count = round before boss battle
+            print("You can choose to trade one of your Pokemon for one of your opponent's. If you select to trade one of your own Pokemon, you must exchange it. If you do not want to exchange Pokemon, input x.")
+            if W_Count == 3: #W_Count = round before boss battle
                 enteam = bossteam1
             elif W_Count == 7:
                 potteam = bossteam2
@@ -481,7 +454,7 @@ while W_Count <= W_Thresh:
             else:
                 enemy_Random_BST_Limit = base_enemy_BST + W_Count * BST_Enemy_Increment
                 enemy_Random_BST_Floor = 170 + W_Count * BST_Enemy_Increment
-                potteam = [co.new_Pokemon(co.random_From_Roster(BST_Floor= enemy_Random_BST_Floor, BST_Limit= enemy_Random_BST_Limit),level=50 + difficulty.diffval),co.new_Pokemon(co.random_From_Roster(BST_Floor= enemy_Random_BST_Floor, BST_Limit= enemy_Random_BST_Limit),level=50 + difficulty.diffval),co.new_Pokemon(co.random_From_Roster(BST_Floor= enemy_Random_BST_Floor, BST_Limit= enemy_Random_BST_Limit),level=50 + difficulty.diffval),]
+                potteam = [co.new_Pokemon(co.random_From_Roster(BST_Floor= enemy_Random_BST_Floor, BST_Limit= enemy_Random_BST_Limit),level=50),co.new_Pokemon(co.random_From_Roster(BST_Floor= enemy_Random_BST_Floor, BST_Limit= enemy_Random_BST_Limit),level=50),co.new_Pokemon(co.random_From_Roster(BST_Floor= enemy_Random_BST_Floor, BST_Limit= enemy_Random_BST_Limit),level=50),]
             print("\nNext opponent's team:",end='')
             printparty(potteam)
             print('\nYour current team:',end='')
