@@ -127,7 +127,7 @@ def help_Menu():
     global uinp
     uinp = ''
     while uinp != '1' and uinp != '2' and uinp != '3' and uinp != '4' and uinp != 'x':
-        uinp = input('\nWhat would you like help with? (1: General Rules, 2: Pokemon, 3: In Battle, 4: Out of Battle, x: Exit): ')
+        uinp = input('\nWhat would you like help with? (1: general rules, 2: pokemon, 3: in battle, 4: out of battle, x: exit): ')
         if uinp == '1':
             print('\n\033[1;33m----------GENERAL RULES----------\033[1;37m')
             print('In order to win the game, you will need to succeed in 16 rounds of Pokemon battling.\nYou will fight more difficult pokemon as you continue.\nYou will need to utilize prediction, planning, and various battle mechanics to win.\n')
@@ -444,7 +444,7 @@ while W_Count <= W_Thresh:
                 poke.real_HP = poke.HP
             print("You can choose to trade one of your Pokemon for one of your opponent's. If you select to trade one of your own Pokemon, you must exchange it. If you do not want to exchange Pokemon, input x.")
             if W_Count == 3: #W_Count = round before boss battle
-                enteam = bossteam1
+                potteam = bossteam1
             elif W_Count == 7:
                 potteam = bossteam2
             elif W_Count == 11:
